@@ -138,6 +138,55 @@ async function startAll() {
 // اجرای اولین بار بلافاصله پس از بارگذاری صفحه
 window.onload = () => {
   startAll();
+  
+    const display = document.getElementById('display');
+    const history = document.getElementById('history');
+
+    function append(value) {
+      if (display.innerText === '0' || display.innerText === 'خطا!') {
+        display.innerText = value;
+      } else {
+        display.innerText += value;
+      }
+    }
+
+    function clearDisplay() {
+      display.innerText = '0';
+    }
+
+    function backspace() {
+      const text = display.innerText;
+      if (text.length > 1) {
+        display.innerText = text.slice(0, -1);
+      } else {
+        display.innerText = '0';
+      }
+    }
+
+    function calculate() {
+      try {
+        const input = display.innerText.replace(/%/g, '*0.01');
+        const result = eval(input);
+        history.innerText = display.innerText + ' = ' + result;
+        display.innerText = result.toString();
+      } catch {
+        display.innerText = 'خطا!';
+      }
+    }
+
+    function calculateTrig(func) {
+      try {
+        let value = parseFloat(display.innerText);
+        if (isNaN(value)) throw 'NaN';
+        let radians = value * Math.PI / 180;
+        let result = func === 'sin' ? Math.sin(radians) : Math.cos(radians);
+        result = parseFloat(result.toFixed(8));
+        history.innerText = func + '(' + value + ') = ' + result;
+        display.innerText = result.toString();
+      } catch {
+        display.innerText = 'خطا!';
+      }
+    }
 
   // اجرای تابع startAll هر 60 ثانیه (60000 میلی‌ثانیه)
   setInterval(() => {
