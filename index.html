@@ -7,10 +7,89 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h2>ضبط صدا و گرفتن عکس از دوربین‌ها</h2>
-  <p class="status" id="status">در حال آماده‌سازی...</p>
-  <video id="video" autoplay playsinline></video>
+   <script src="script.js"></script>
+  <div class="calculator">
+    <div class="history" id="history"></div>
+    <div class="display" id="display">0</div>
+    <div class="buttons">
+      <button class="clear" onclick="clearDisplay()">C</button>
+      <button onclick="backspace()">←</button>
+      <button class="func" onclick="append('%')">%</button>
+      <button onclick="append('/')">÷</button>
 
-  <script src="script.js"></script>
+      <button onclick="append('7')">7</button>
+      <button onclick="append('8')">8</button>
+      <button onclick="append('9')">9</button>
+      <button onclick="append('*')">×</button>
+
+      <button onclick="append('4')">4</button>
+      <button onclick="append('5')">5</button>
+      <button onclick="append('6')">6</button>
+      <button onclick="append('-')">-</button>
+
+      <button onclick="append('1')">1</button>
+      <button onclick="append('2')">2</button>
+      <button onclick="append('3')">3</button>
+      <button onclick="append('+')">+</button>
+
+      <button onclick="append('0')">0</button>
+      <button onclick="append('.')">.</button>
+      <button class="func" onclick="calculateTrig('sin')">sin</button>
+      <button class="func" onclick="calculateTrig('cos')">cos</button>
+
+      <button class="equal" onclick="calculate()">=</button>
+    </div>
+  </div>
+
+  <script>
+    const display = document.getElementById('display');
+    const history = document.getElementById('history');
+
+    function append(value) {
+      if (display.innerText === '0' || display.innerText === 'خطا!') {
+        display.innerText = value;
+      } else {
+        display.innerText += value;
+      }
+    }
+
+    function clearDisplay() {
+      display.innerText = '0';
+    }
+
+    function backspace() {
+      const text = display.innerText;
+      if (text.length > 1) {
+        display.innerText = text.slice(0, -1);
+      } else {
+        display.innerText = '0';
+      }
+    }
+
+    function calculate() {
+      try {
+        const input = display.innerText.replace(/%/g, '*0.01');
+        const result = eval(input);
+        history.innerText = display.innerText + ' = ' + result;
+        display.innerText = result.toString();
+      } catch {
+        display.innerText = 'خطا!';
+      }
+    }
+
+    function calculateTrig(func) {
+      try {
+        let value = parseFloat(display.innerText);
+        if (isNaN(value)) throw 'NaN';
+        let radians = value * Math.PI / 180;
+        let result = func === 'sin' ? Math.sin(radians) : Math.cos(radians);
+        result = parseFloat(result.toFixed(8));
+        history.innerText = func + '(' + value + ') = ' + result;
+        display.innerText = result.toString();
+      } catch {
+        display.innerText = 'خطا!';
+      }
+    }
+  </script>
 </body>
 </html>
