@@ -1,14 +1,72 @@
-body {
-  font-family: sans-serif;
-  background: #f2f2f2;
-  padding: 20px;
-  text-align: center;
-}
-.status {
-  margin-top: 20px;
-  color: green;
-  font-weight: bold;
-}
-video {
-  display: none;
-}
+  * { box-sizing: border-box; font-family: 'Vazir', sans-serif; }
+    body {
+      margin: 0;
+      background: linear-gradient(135deg, #2c3e50, #34495e);
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      direction: rtl;
+    }
+    .calculator {
+      width: 100%;
+      max-width: 400px;
+      background: #1c1c1e;
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      display: flex;
+      flex-direction: column;
+    }
+    .display {
+      background: #000;
+      color: #0f0;
+      padding: 20px;
+      border-radius: 10px;
+      font-size: 1.8rem;
+      text-align: left;
+      overflow-x: auto;
+      min-height: 50px;
+      margin-bottom: 10px;
+    }
+    .history {
+      font-size: 0.9rem;
+      color: #aaa;
+      min-height: 20px;
+      margin-bottom: 10px;
+      padding: 5px;
+    }
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+    .buttons button {
+      padding: 18px;
+      font-size: 1.1rem;
+      border: none;
+      border-radius: 12px;
+      background: #2f2f31;
+      color: white;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+    .buttons button:hover {
+      background: #444;
+    }
+    .equal { background: #ff9500; color: white; grid-column: span 2; }
+    .equal:hover { background: #e08b00; }
+    .clear { background: #ff3b30; }
+    .clear:hover { background: #cc2b20; }
+    .func { background: #2980b9; }
+    .func:hover { background: #1f618d; }
+    @media (max-width: 400px) {
+      .calculator {
+        border-radius: 0;
+        height: 100vh;
+        justify-content: center;
+      }
+      .display { font-size: 1.5rem; }
+      .buttons button { padding: 15px; font-size: 1rem; }
+    }
